@@ -276,8 +276,12 @@ class MainWindow(QMainWindow):
         left_layout.addLayout(rider_layout, 10, 2, 1, 2)
 
         # STRETCH LEFT LAYOUT
+        self.riders_switch_position = QPushButton()
+        self.riders_switch_position.setText("Riders Switched Position")
+        self.riders_switch_position.setEnabled(False)
         left_bottom_layout = QVBoxLayout()
-        left_layout.addLayout(left_bottom_layout, 6, 0, 10, 1)
+        left_bottom_layout.addWidget(self.riders_switch_position)
+        left_layout.addLayout(left_bottom_layout, 11, 0, 10, 3)
 
         outer_layout.addLayout(left_layout, 1)
         outer_layout.addLayout(right_layout, 6)
@@ -295,10 +299,12 @@ class MainWindow(QMainWindow):
         self.conf_arduino_button.clicked.connect(self.button_click)
         self.lap_button.clicked.connect(self.button_click)
         self.lap_button2.clicked.connect(self.button_click)
+        self.riders_switch_position.clicked.connect(self.button_click)
 
         self.input_sec.textChanged.connect(self.set_big_timer_label_text)
         self.checkbox_laps.stateChanged.connect(self.set_lap_button_state)
         self.laps.textChanged.connect(self.set_big_timer_laps)
+        self.checkbox_two_riders.stateChanged.connect(self.disable_riders_switched_position_button)
 
         # FLAGS AND VARIABLES
         # //////////////////////////////////////////////
@@ -352,6 +358,14 @@ class MainWindow(QMainWindow):
         else:
             self.cancel_button.setText("Reset")
             self.cancel_button.setStyleSheet("background-color: yellow")
+    
+    # DISABLE Riders Switched Position BUTTON WHILE NOT ACTIVE
+    def disable_riders_switched_position_button(self):
+        if self.checkbox_two_riders.isChecked():
+            self.riders_switch_position.setEnabled(True)
+        else:
+            self.riders_switch_position.setEnabled(False)
+            
 
     # LAP BUTTON
     def set_lap_button_state(self):
@@ -472,6 +486,10 @@ class MainWindow(QMainWindow):
         self.arduino_read2 = None
         self.loop(2000)
         self.arduino_read2 = True
+    
+    def switch_arduino_read_value(self):
+        self.arduino_read = not self.arduino_read
+        self.arduino_read2 = not self.arduino_read2
 
     # CLOSE WINDOW IF ESC PRESSED
     # -----------------
@@ -582,6 +600,11 @@ class MainWindow(QMainWindow):
 
         if sender == "Split Time / Lap 2":
             self.stopwatch_split_time2()
+            
+        if sender == "Riders Switched Position":
+            self.switch_arduino_read_value()
+            print(self.arduino_read)
+            print(self.arduino_read2)
 
     # COUNTDOWN TIMER
     # //////////////////////////////////////////////
