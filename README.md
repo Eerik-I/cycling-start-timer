@@ -1,4 +1,4 @@
-# cycling-start-timer
+# cycling-start-timer-python
 Track cycling start timer with arduino support and stopwatch
 
 Cycling start countdown timer, using python time module.</br>
