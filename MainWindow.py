@@ -479,17 +479,17 @@ class MainWindow(QMainWindow):
 
     def set_arduino_read_false_true1(self):
         self.arduino_read = None
-        self.loop(2000)
+        self.loop(1000)
         self.arduino_read = True
 
     def set_arduino_read_false_true2(self):
         self.arduino_read2 = None
-        self.loop(2000)
+        self.loop(1000)
         self.arduino_read2 = True
     
     def switch_arduino_read_value(self):
-        self.arduino_read = not self.arduino_read
-        self.arduino_read2 = not self.arduino_read2
+        self.split_time1 = not self.split_time1
+        self.split_time2 = not self.split_time2
 
     # CLOSE WINDOW IF ESC PRESSED
     # -----------------
@@ -685,7 +685,7 @@ class MainWindow(QMainWindow):
                 self.big_window2.set_timer_text(self.big_timer.text())
 
             # Split times from ARDUINO - Straight 1
-            if self.checkbox_usb.isChecked() and self.elapsed_time > 5 and self.digital_input9.read() == self.arduino_read:
+            if self.checkbox_usb.isChecked() and self.elapsed_time > 2 and self.digital_input9.read() == self.arduino_read:
                 if self.checkbox_two_riders.isChecked() and self.split_time1:
                     self.stopwatch_split_time()
                     threading.Thread(
@@ -702,7 +702,7 @@ class MainWindow(QMainWindow):
                         target=self.set_arduino_read_false_true1, args=(), daemon=True).start()
 
             # Split times from ARDUINO - Straight 2
-            if self.checkbox_usb.isChecked() and self.elapsed_time > 5 and self.digital_input10.read() == self.arduino_read2:
+            if self.checkbox_usb.isChecked() and self.elapsed_time > 2 and self.digital_input10.read() == self.arduino_read2:
                 if self.checkbox_two_riders.isChecked() and self.split_time2:
                     self.stopwatch_split_time2()
                     threading.Thread(
