@@ -6,7 +6,7 @@ import pyfirmata
 import serial.tools.list_ports
 from playsound import playsound
 from PyQt6.QtCore import QEventLoop, QSize, Qt, QTimer, pyqtSignal
-from PyQt6.QtGui import QFont, QIcon, QIntValidator
+from PyQt6.QtGui import QFont, QGuiApplication, QIcon, QIntValidator
 from PyQt6.QtWidgets import (QCheckBox, QDialog, QDialogButtonBox, QFormLayout,
                              QFrame, QGridLayout, QHBoxLayout, QLabel,
                              QLineEdit, QListWidget, QMainWindow, QMessageBox,
@@ -304,7 +304,8 @@ class MainWindow(QMainWindow):
         self.input_sec.textChanged.connect(self.set_big_timer_label_text)
         self.checkbox_laps.stateChanged.connect(self.set_lap_button_state)
         self.laps.textChanged.connect(self.set_big_timer_laps)
-        self.checkbox_two_riders.stateChanged.connect(self.disable_riders_switched_position_button)
+        self.checkbox_two_riders.stateChanged.connect(
+            self.disable_riders_switched_position_button)
 
         # FLAGS AND VARIABLES
         # //////////////////////////////////////////////
@@ -358,16 +359,16 @@ class MainWindow(QMainWindow):
         else:
             self.cancel_button.setText("Reset")
             self.cancel_button.setStyleSheet("background-color: yellow")
-    
+
     # DISABLE Riders Switched Position BUTTON WHILE NOT ACTIVE
     def disable_riders_switched_position_button(self):
         if self.checkbox_two_riders.isChecked():
             self.riders_switch_position.setEnabled(True)
         else:
             self.riders_switch_position.setEnabled(False)
-            
 
     # LAP BUTTON
+
     def set_lap_button_state(self):
         if self.checkbox_laps.isChecked():
             self.lap_button.setEnabled(True)
@@ -486,7 +487,7 @@ class MainWindow(QMainWindow):
         self.arduino_read2 = None
         self.loop(1000)
         self.arduino_read2 = True
-    
+
     def switch_arduino_read_value(self):
         self.split_time1 = not self.split_time1
         self.split_time2 = not self.split_time2
@@ -600,7 +601,7 @@ class MainWindow(QMainWindow):
 
         if sender == "Split Time / Lap 2":
             self.stopwatch_split_time2()
-            
+
         if sender == "Riders Switched Position":
             self.switch_arduino_read_value()
             print(self.arduino_read)
@@ -612,6 +613,22 @@ class MainWindow(QMainWindow):
         t = int(self.input_sec.text()) + int(time.time())
         i = t - int(time.time())
 
+        # Display mm:ss timeformat
+        while i >= 60:
+            i = t - int(time.time())
+            min, sec = divmod(i, 60)
+            output = f"{min:02d}:{sec:>2}"
+            if self.break_loop == True:
+                break
+            self.big_timer.setText("<h1>" + str(output) + "</h1>")
+            if self.septimewindow:
+                self.big_window.set_timer_text(str(output))
+            if self.septimewindow2:
+                self.big_window2.set_timer_text(str(output))
+            self.loop(500)
+            i -= 1
+
+        # Display ss timeformat
         while i >= 0:
             i = t - int(time.time())
             if self.break_loop == True:
@@ -621,35 +638,39 @@ class MainWindow(QMainWindow):
                 self.big_window.set_timer_text(str(i))
             if self.septimewindow2:
                 self.big_window2.set_timer_text(str(i))
-            if i == 0:
-                self.start_time = time.time()
-                if self.checkbox_usb.isChecked():
-                    self.digital_output5.write(1)
-                    self.digital_output6.write(1)
-                self.play_sound('mp3/beep-long.mp3')
-                if self.septimewindow or self.septimewindow2:
-                    if self.septimewindow:
-                        self.big_window.finish_background_green()
-                    if self.septimewindow2:
-                        self.big_window2.finish_background_green()
-                    self.loop(1000)
-                    if self.septimewindow:
-                        self.big_window.finish_background_reset()
-                    if self.septimewindow2:
-                        self.big_window2.finish_background_reset()
-                else:
-                    self.loop(1000)
-                if self.checkbox_usb.isChecked():
-                    self.digital_output5.write(0)
-                    self.digital_output6.write(0)
-                if self.checkbox_stopwatch.isChecked():
-                    self.stopwatch_flag = True
-                    self.stopwatch()
-
-            elif 0 < i < 6 or i == 50 or i == 30 or i == 10:
+            if i <= 0:
+                break
+            if 0 < i < 6 or i == 50 or i == 30 or i == 10:
                 self.play_sound("mp3/beep.mp3")
-            self.loop(1000)
+                self.loop(1000)
+            else:
+                self.loop(500)
             i -= 1
+
+        if i <= 0:
+            self.start_time = time.time()
+            if self.checkbox_usb.isChecked():
+                self.digital_output5.write(1)
+                self.digital_output6.write(1)
+            self.play_sound('mp3/beep-long.mp3')
+            if self.septimewindow or self.septimewindow2:
+                if self.septimewindow:
+                    self.big_window.finish_background_green()
+                if self.septimewindow2:
+                    self.big_window2.finish_background_green()
+                self.loop(1000)
+                if self.septimewindow:
+                    self.big_window.finish_background_reset()
+                if self.septimewindow2:
+                    self.big_window2.finish_background_reset()
+            else:
+                self.loop(1000)
+            if self.checkbox_usb.isChecked():
+                self.digital_output5.write(0)
+                self.digital_output6.write(0)
+            if self.checkbox_stopwatch.isChecked():
+                self.stopwatch_flag = True
+                self.stopwatch()
         if not self.checkbox_stopwatch.isChecked():
             self.cancel_button.setText("Reset")
             self.cancel_button.setStyleSheet("background-color: yellow")
@@ -661,17 +682,28 @@ class MainWindow(QMainWindow):
         self.big_timer.setAlignment(Qt.AlignmentFlag.AlignVCenter)
         self.big_timer.setStyleSheet('padding-left: 30px')
         self.set_cancel_button_text()
-        
+
         if self.checkbox_laps.isChecked():
             self.laps_for_split_times = int(self.laps.text())
-            if self.septimewindow:
-                self.big_window.set_font_size_to_stopwatch()
-                self.big_window_stopwatch_flag1 = True
+
+        if self.septimewindow:
+            self.big_window.set_font_size_to_stopwatch()
+            self.big_window_stopwatch_flag1 = True
+            if self.checkbox_laps.isChecked():
                 self.laps_amount = int(self.laps.text())
-            if self.septimewindow2:
-                self.big_window2.set_font_size_to_stopwatch()
-                self.big_window_stopwatch_flag2 = True
+            else:
+                self.laps_amount = 0
+
+        if self.septimewindow2:
+            self.big_window2.set_font_size_to_stopwatch()
+            self.big_window_stopwatch_flag2 = True
+            if self.checkbox_laps.isChecked():
                 self.laps_amount2 = int(self.laps.text())
+                print(self.laps_amount2)
+            else:
+                self.laps_amount2 = 0
+                print(self.laps_amount2)
+
         while self.stopwatch_flag:
             self.elapsed_time = round((time.time() - self.start_time), 2)
             self.min, self.sec = divmod(self.elapsed_time, 60)
@@ -718,7 +750,7 @@ class MainWindow(QMainWindow):
                     threading.Thread(
                         target=self.set_arduino_read_false_true2, args=(), daemon=True).start()
 
-            self.loop(100)
+            self.loop(10)
 
     def stopwatch_split_time(self):
         if self.big_window_stopwatch_flag1:
@@ -810,10 +842,11 @@ class LapsSeperateTimerWindow(QWidget):
         self.width = user32.GetSystemMetrics(0)
         self.height = user32.GetSystemMetrics(1)
 
+        self.pixel_ratio = QGuiApplication.primaryScreen().devicePixelRatio()
+
         self.setWindowTitle("Timer")
         self.setWindowIcon(QIcon('icon/t.png'))
         self.resize(self.width, self.height)
-        # self.setGeometry(0, 0, 1000, 1000)
         self.x = self.geometry().height()
         self.y = self.geometry().width()
         print(self.geometry())
@@ -821,13 +854,13 @@ class LapsSeperateTimerWindow(QWidget):
         self.laps_remaining = QLabel()
         self.laps_remaining.setAlignment(Qt.AlignmentFlag.AlignCenter)
         font = QFont()
-        font.setPixelSize(self.x / 7)
+        font.setPixelSize(self.x / 7 / self.pixel_ratio)
         font.setFamily("Arial")
         self.laps_remaining.setFont(font)
         self.laps_remaining.setStyleSheet("background-color: yellow")
         self.split_time = QLabel()
         font = QFont()
-        font.setPixelSize(self.x / 20)
+        font.setPixelSize(self.x / 20 / self.pixel_ratio)
         self.split_time.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.split_time.setFont(font)
 
@@ -838,7 +871,7 @@ class LapsSeperateTimerWindow(QWidget):
         self.timer.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.timer.setObjectName("timer")
         font = QFont()
-        font.setPixelSize(self.x / 6)
+        font.setPixelSize(self.x / 6 / self.pixel_ratio)
         self.timer.setFont(font)
         # self.timer.setFont(QFont("Arial", self.x / 3))
 
@@ -868,7 +901,7 @@ class LapsSeperateTimerWindow(QWidget):
 
     def set_font_size_to_stopwatch(self, multiplier=6):
         font = QFont()
-        font.setPixelSize(self.x / multiplier)
+        font.setPixelSize(self.x / multiplier / self.pixel_ratio)
         self.timer.setFont(font)
 
     def keyPressEvent(self, e):
