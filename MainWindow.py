@@ -428,20 +428,20 @@ class MainWindow(QMainWindow):
     def write_split_times_to_file(self, straight_number, finish=False, finish_min=0, finish_sec=0):
         if straight_number == 1 and finish:
             self.main_straight_file.write(
-                str(f"FINISH: {finish_min:02d}:{finish_sec:>5}"))
+                str(f"FINISH: {finish_min:02d}:{finish_sec}"))
             self.main_straight_file.close()
         elif straight_number == 1 and not finish:
             self.main_straight_file.write(
-                str(f"{self.laps_for_split_times - self.laps_amount}: {self.min:02d}:{self.sec:>5}"))
+                str(f"{self.laps_for_split_times - self.laps_amount}: {finish_min:02d}:{finish_sec}"))
             self.main_straight_file.write("\n")
 
         if straight_number == 2 and finish:
             self.second_straight_file.write(
-                str(f"FINISH: {finish_min:02d}:{finish_sec:>5}"))
+                str(f"FINISH: {finish_min:02d}:{finish_sec}"))
             self.second_straight_file.close()
         elif straight_number == 2 and not finish:
             self.second_straight_file.write(
-                str(f"{self.laps_for_split_times - self.laps_amount2}: {self.min:02d}:{self.sec:>5}"))
+                str(f"{self.laps_for_split_times - self.laps_amount2}: {finish_min:02d}:{finish_sec}"))
             self.second_straight_file.write("\n")
 
     # RESET LABELS
@@ -750,9 +750,12 @@ class MainWindow(QMainWindow):
                     threading.Thread(
                         target=self.set_arduino_read_false_true2, args=(), daemon=True).start()
 
-            self.loop(10)
+            self.loop(100)
 
     def stopwatch_split_time(self):
+        split_min, split_sec = divmod((time.time() - self.start_time), 60)
+        split_min = int(split_min)
+        split_sec = f"{split_sec:.2f}"
         if self.big_window_stopwatch_flag1:
             if self.laps_amount <= 1:
                 self.laps_amount -= 1
@@ -764,12 +767,15 @@ class MainWindow(QMainWindow):
                 if self.septimewindow:
                     self.big_window.set_laps(str(self.laps_amount))
                     self.big_window.set_split_time(
-                        str(f"{self.min:02d}:{self.sec:>5}"))
+                        str(f"{split_min:02d}:{split_sec}"))
                     self.big_window.laps_layout.addWidget(
                         self.big_window.split_time)
-                    self.write_split_times_to_file(1)
+                    self.write_split_times_to_file(1, finish_min=split_min, finish_sec=split_sec)
 
     def stopwatch_split_time2(self):
+        split_min, split_sec = divmod((time.time() - self.start_time), 60)
+        split_min = int(split_min)
+        split_sec = f"{split_sec:.2f}"
         if self.big_window_stopwatch_flag2:
             if self.laps_amount2 <= 1:
                 self.laps_amount2 -= 1
@@ -781,10 +787,10 @@ class MainWindow(QMainWindow):
                 if self.septimewindow2:
                     self.big_window2.set_laps(str(self.laps_amount2))
                     self.big_window2.set_split_time(
-                        str(f"{self.min:02d}:{self.sec:>5}"))
+                        str(f"{split_min:02d}:{split_sec}"))
                     self.big_window2.laps_layout.addWidget(
                         self.big_window2.split_time)
-                    self.write_split_times_to_file(2)
+                    self.write_split_times_to_file(2, finish_min=split_min, finish_sec=split_sec)
 
     def stop_stopwatch(self):
         finish_min, finish_sec = divmod((time.time() - self.start_time), 60)
