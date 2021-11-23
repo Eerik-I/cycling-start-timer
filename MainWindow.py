@@ -280,22 +280,23 @@ class MainWindow(QMainWindow):
         self.riders_switch_position.setText("Riders Switched Position")
         self.riders_switch_position.setEnabled(False)
         
-        self.rider_box_layout = QFormLayout()
+        self.straight_box_layout = QFormLayout()
         
         self.straight_one_arduino_read_pixmap = QLabel()
         self.straight_one_arduino_read_pixmap.setFixedSize(QSize(20, 20))
         self.straight_one_arduino_read_pixmap.setStyleSheet("background-color: red;")
-        self.rider_box_layout.addRow(QLabel("Straight 1"), self.straight_one_arduino_read_pixmap)
+        self.straight_box_layout.addRow(QLabel("Straight 1"), self.straight_one_arduino_read_pixmap)
         
         self.straight_two_arduino_read_pixmap = QLabel()
         self.straight_two_arduino_read_pixmap.setFixedSize(QSize(20, 20))
         self.straight_two_arduino_read_pixmap.setStyleSheet("background-color: red;")
-        self.rider_box_layout.addRow(QLabel("Straight 2"), self.straight_two_arduino_read_pixmap)
+        self.straight_box_layout.addRow(QLabel("Straight 2"), self.straight_two_arduino_read_pixmap)
         
         
         left_bottom_layout = QVBoxLayout()
+        left_bottom_layout.addWidget(QLabel(), 1)
         left_bottom_layout.addWidget(self.riders_switch_position)
-        left_bottom_layout.addLayout(self.rider_box_layout)
+        left_bottom_layout.addLayout(self.straight_box_layout)
         left_layout.addLayout(left_bottom_layout, 11, 0, 10, 3)
 
         outer_layout.addLayout(left_layout, 1)
