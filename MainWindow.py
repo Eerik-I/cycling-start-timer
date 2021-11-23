@@ -279,8 +279,23 @@ class MainWindow(QMainWindow):
         self.riders_switch_position = QPushButton()
         self.riders_switch_position.setText("Riders Switched Position")
         self.riders_switch_position.setEnabled(False)
+        
+        self.rider_box_layout = QFormLayout()
+        
+        self.straight_one_arduino_read_pixmap = QLabel()
+        self.straight_one_arduino_read_pixmap.setFixedSize(QSize(20, 20))
+        self.straight_one_arduino_read_pixmap.setStyleSheet("background-color: red;")
+        self.rider_box_layout.addRow(QLabel("Straight 1"), self.straight_one_arduino_read_pixmap)
+        
+        self.straight_two_arduino_read_pixmap = QLabel()
+        self.straight_two_arduino_read_pixmap.setFixedSize(QSize(20, 20))
+        self.straight_two_arduino_read_pixmap.setStyleSheet("background-color: red;")
+        self.rider_box_layout.addRow(QLabel("Straight 2"), self.straight_two_arduino_read_pixmap)
+        
+        
         left_bottom_layout = QVBoxLayout()
         left_bottom_layout.addWidget(self.riders_switch_position)
+        left_bottom_layout.addLayout(self.rider_box_layout)
         left_layout.addLayout(left_bottom_layout, 11, 0, 10, 3)
 
         outer_layout.addLayout(left_layout, 1)
@@ -491,6 +506,15 @@ class MainWindow(QMainWindow):
     def switch_arduino_read_value(self):
         self.split_time1 = not self.split_time1
         self.split_time2 = not self.split_time2
+        if self.split_time1:
+            self.straight_one_arduino_read_pixmap.setStyleSheet("background-color: green")
+        else:
+            self.straight_one_arduino_read_pixmap.setStyleSheet("background-color: red")
+        if self.split_time2:
+            self.straight_two_arduino_read_pixmap.setStyleSheet("background-color: green")
+        else:
+            self.straight_two_arduino_read_pixmap.setStyleSheet("background-color: red")
+            
 
     # CLOSE WINDOW IF ESC PRESSED
     # -----------------
@@ -604,8 +628,9 @@ class MainWindow(QMainWindow):
 
         if sender == "Riders Switched Position":
             self.switch_arduino_read_value()
-            print(self.arduino_read)
-            print(self.arduino_read2)
+            print("Switched riders position")
+            print(self.split_time1)
+            print(self.split_time2)
 
     # COUNTDOWN TIMER
     # //////////////////////////////////////////////
