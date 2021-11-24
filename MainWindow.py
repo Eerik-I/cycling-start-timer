@@ -28,7 +28,7 @@ class MainWindow(QMainWindow):
         app_icon.addFile('icon/t.png', QSize(256, 256))
         self.setWindowIcon(app_icon)
         self.setObjectName("MainWindow")
-        self.resize(600, 600)
+        self.resize(650, 650)
         outer_layout = QHBoxLayout()
         left_layout = QGridLayout()
         right_layout = QHBoxLayout()
@@ -237,12 +237,32 @@ class MainWindow(QMainWindow):
         self.lap_button2.setText("Split Time / Lap 2")
 
         # LAPS LAYOUT
-        lap_layout = QFormLayout()
-        lap_layout.addRow(self.label_laps_big_text)
-        lap_layout.addRow(self.label_two_riders, self.checkbox_two_riders)
-        lap_layout.addRow(self.lap_button)
-        lap_layout.addRow(self.lap_button2)
-        left_layout.addLayout(lap_layout, 10, 0, 1, 2)
+        lap_layout1 = QFormLayout()
+        lap_layout2 = QFormLayout()
+        lap_layout1.addRow(self.label_laps_big_text)
+        lap_layout1.addRow(self.label_two_riders, self.checkbox_two_riders)
+        lap_layout2.addRow(self.lap_button)
+        lap_layout2.addRow(self.lap_button2)
+        left_layout.addLayout(lap_layout1, 10, 0, 1, 2)
+        left_layout.addLayout(lap_layout2, 11, 0, 1, 2)
+
+        # SPLIT TIME LABELS
+        self.label_lap_time1 = QLabel()
+        self.label_lap_time1.setText("Split time")
+        font = QFont()
+        font.setPointSize(10)
+        self.label_lap_time1.setFont(font)
+        self.label_lap_time1.setFixedHeight(23)
+        self.label_lap_time2 = QLabel()
+        self.label_lap_time2.setText("Split time")
+        self.label_lap_time2.setFont(font)
+        self.label_lap_time2.setFixedHeight(23)
+
+        # SPLIT TIME LAYOUT
+        split_time_layout = QFormLayout()
+        split_time_layout.addRow(self.label_lap_time1)
+        split_time_layout.addRow(self.label_lap_time2)
+        left_layout.addLayout(split_time_layout, 11, 2, 1, 2)
 
         # NUMBERS FOR SPLIT TIME FILES
         # Rider 1
@@ -273,31 +293,34 @@ class MainWindow(QMainWindow):
         rider_layout.addRow(QLabel("Name or number"))
         rider_layout.addRow(self.rider_one_number)
         rider_layout.addRow(self.rider_two_number)
-        left_layout.addLayout(rider_layout, 10, 2, 1, 2)
+        left_layout.addLayout(rider_layout, 12, 0, 1, 2)
 
         # STRETCH LEFT LAYOUT
         self.riders_switch_position = QPushButton()
         self.riders_switch_position.setText("Riders Switched Position")
         self.riders_switch_position.setEnabled(False)
-        
+
         self.straight_box_layout = QFormLayout()
-        
+
         self.straight_one_arduino_read_pixmap = QLabel()
         self.straight_one_arduino_read_pixmap.setFixedSize(QSize(20, 20))
-        self.straight_one_arduino_read_pixmap.setStyleSheet("background-color: red;")
-        self.straight_box_layout.addRow(QLabel("Straight 1"), self.straight_one_arduino_read_pixmap)
-        
+        self.straight_one_arduino_read_pixmap.setStyleSheet(
+            "background-color: red;")
+        self.straight_box_layout.addRow(
+            QLabel("Straight 1"), self.straight_one_arduino_read_pixmap)
+
         self.straight_two_arduino_read_pixmap = QLabel()
         self.straight_two_arduino_read_pixmap.setFixedSize(QSize(20, 20))
-        self.straight_two_arduino_read_pixmap.setStyleSheet("background-color: red;")
-        self.straight_box_layout.addRow(QLabel("Straight 2"), self.straight_two_arduino_read_pixmap)
-        
-        
+        self.straight_two_arduino_read_pixmap.setStyleSheet(
+            "background-color: red;")
+        self.straight_box_layout.addRow(
+            QLabel("Straight 2"), self.straight_two_arduino_read_pixmap)
+
         left_bottom_layout = QVBoxLayout()
         left_bottom_layout.addWidget(QLabel(), 1)
         left_bottom_layout.addWidget(self.riders_switch_position)
         left_bottom_layout.addLayout(self.straight_box_layout)
-        left_layout.addLayout(left_bottom_layout, 11, 0, 10, 3)
+        left_layout.addLayout(left_bottom_layout, 13, 0, 10, 3)
 
         outer_layout.addLayout(left_layout, 1)
         outer_layout.addLayout(right_layout, 6)
@@ -384,7 +407,6 @@ class MainWindow(QMainWindow):
             self.riders_switch_position.setEnabled(False)
 
     # LAP BUTTON
-
     def set_lap_button_state(self):
         if self.checkbox_laps.isChecked():
             self.lap_button.setEnabled(True)
@@ -402,6 +424,7 @@ class MainWindow(QMainWindow):
             self.big_timer_window_button2.click()
 
     # BIG TIMER LABEL
+
     def set_big_timer_label_text(self, e):
         self.big_timer.setText("<h1>" + e + "</h1>")
         if self.septimewindow:
@@ -507,15 +530,21 @@ class MainWindow(QMainWindow):
     def switch_arduino_read_value(self):
         self.split_time1 = not self.split_time1
         self.split_time2 = not self.split_time2
+        self.straight_arduino_read_pixmap_color_change()
+
+    def straight_arduino_read_pixmap_color_change(self):
         if self.split_time1:
-            self.straight_one_arduino_read_pixmap.setStyleSheet("background-color: green")
+            self.straight_one_arduino_read_pixmap.setStyleSheet(
+                "background-color: green")
         else:
-            self.straight_one_arduino_read_pixmap.setStyleSheet("background-color: red")
+            self.straight_one_arduino_read_pixmap.setStyleSheet(
+                "background-color: red")
         if self.split_time2:
-            self.straight_two_arduino_read_pixmap.setStyleSheet("background-color: green")
+            self.straight_two_arduino_read_pixmap.setStyleSheet(
+                "background-color: green")
         else:
-            self.straight_two_arduino_read_pixmap.setStyleSheet("background-color: red")
-            
+            self.straight_two_arduino_read_pixmap.setStyleSheet(
+                "background-color: red")
 
     # CLOSE WINDOW IF ESC PRESSED
     # -----------------
@@ -749,11 +778,13 @@ class MainWindow(QMainWindow):
                     threading.Thread(
                         target=self.set_arduino_read_false_true1, args=(), daemon=True).start()
                     self.split_time1 = False
+                    self.straight_arduino_read_pixmap_color_change()
                 elif self.checkbox_two_riders.isChecked() and not self.split_time1:
                     threading.Thread(
                         target=self.set_arduino_read_false_true1, args=(), daemon=True).start()
                     self.split_time1 = True
                     self.big_window.set_split_time("")
+                    self.straight_arduino_read_pixmap_color_change()
                 else:
                     self.stopwatch_split_time()
                     threading.Thread(
@@ -766,11 +797,13 @@ class MainWindow(QMainWindow):
                     threading.Thread(
                         target=self.set_arduino_read_false_true2, args=(), daemon=True).start()
                     self.split_time2 = False
+                    self.straight_arduino_read_pixmap_color_change()
                 elif self.checkbox_two_riders.isChecked() and not self.split_time2:
                     threading.Thread(
                         target=self.set_arduino_read_false_true2, args=(), daemon=True).start()
                     self.split_time2 = True
                     self.big_window2.set_split_time("")
+                    self.straight_arduino_read_pixmap_color_change()
                 else:
                     self.stopwatch_split_time2()
                     threading.Thread(
@@ -786,6 +819,7 @@ class MainWindow(QMainWindow):
             if self.laps_amount <= 1:
                 self.laps_amount -= 1
                 self.stop_stopwatch()
+                self.label_lap_time1.setText(f"FINISH {split_min}:{split_sec}")
 
             else:
                 self.laps_amount -= 1
@@ -796,7 +830,9 @@ class MainWindow(QMainWindow):
                         str(f"{split_min:02d}:{split_sec}"))
                     self.big_window.laps_layout.addWidget(
                         self.big_window.split_time)
-                    self.write_split_times_to_file(1, finish_min=split_min, finish_sec=split_sec)
+                    self.write_split_times_to_file(
+                        1, finish_min=split_min, finish_sec=split_sec)
+                    self.label_lap_time1.setText(f"{split_min}:{split_sec}")
 
     def stopwatch_split_time2(self):
         split_min, split_sec = divmod((time.time() - self.start_time), 60)
@@ -806,6 +842,7 @@ class MainWindow(QMainWindow):
             if self.laps_amount2 <= 1:
                 self.laps_amount2 -= 1
                 self.stop_stopwatch()
+                self.label_lap_time2.setText(f"FINISH {split_min}:{split_sec}")
 
             else:
                 self.laps_amount2 -= 1
@@ -816,7 +853,9 @@ class MainWindow(QMainWindow):
                         str(f"{split_min:02d}:{split_sec}"))
                     self.big_window2.laps_layout.addWidget(
                         self.big_window2.split_time)
-                    self.write_split_times_to_file(2, finish_min=split_min, finish_sec=split_sec)
+                    self.write_split_times_to_file(
+                        2, finish_min=split_min, finish_sec=split_sec)
+                    self.label_lap_time2.setText(f"{split_min}:{split_sec}")
 
     def stop_stopwatch(self):
         finish_min, finish_sec = divmod((time.time() - self.start_time), 60)
