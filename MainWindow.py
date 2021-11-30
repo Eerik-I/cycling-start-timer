@@ -1,5 +1,4 @@
 import ctypes
-import enum
 import threading
 import time
 
@@ -467,34 +466,46 @@ class MainWindow(QMainWindow):
     def write_split_times_to_file(self, straight_number):
         current_time = time.localtime()
         if straight_number == 1:
-            with open(
-                    f"results/1st-({current_time.tm_year}-{current_time.tm_mon}-{current_time.tm_mday})({current_time.tm_hour}-{current_time.tm_min}-{current_time.tm_sec})-({self.rider_one_number.text()}).txt", "a") as f:
-
-                for index, t in enumerate(self.split_time_array_one):
-                    print(f"{index + 1}: {t[0]}:{t[1]}", file=f)
-                    
-                print(file=f)
-                print("LAP TIMES", file=f)
-                
-                total_time = 0
-                for lap, t in enumerate(self.split_time_array_one):
-                    lap = lap + 1
-                    total_time += int(t[0] * 60) + float(t[1])
-                    lap_time = total_time - (int(t[0] * 60) + float(t[1]))
-                    print(f"{lap}: {lap_time}", file=f)
-                    
-                    
-                
-                    
-                    
-                    
+            rider = self.rider_one_number.text()
+            times = self.split_time_array_one
         if straight_number == 2:
-            with open(
-                    f"results/2nd-({current_time.tm_year}-{current_time.tm_mon}-{current_time.tm_mday})({current_time.tm_hour}-{current_time.tm_min}-{current_time.tm_sec})-({self.rider_two_number.text()}).txt", "a") as f:
+            rider = self.rider_two_number.text()
+            times = self.split_time_array_two
+            
+        with open(
+                f"results/{straight_number}st-({current_time.tm_year}-{current_time.tm_mon}-{current_time.tm_mday})"
+                f"({current_time.tm_hour}-{current_time.tm_min}-{current_time.tm_sec})-"
+                f"({rider}).txt", "a") as f:
 
-                for index, t in enumerate(self.split_time_array_two):
-                    print(f"{index + 1}: {t}", file=f)
-                    
+            print(f"ATHLETE: {rider}", file=f)
+            print(file=f)
+            print("SPLIT TIMES", file=f)
+            print("*" * 13,file=f)
+            for index, t in enumerate(times):
+                print(f"{index + 1}: {t[0]}:{t[1]}", file=f)
+
+            print(file=f)
+            print("LAP TIMES", file=f)
+            print("*" * 13,file=f)
+
+            split_time = 0
+            lap_time = 0
+            for lap, t in enumerate(times):
+                lap = lap + 1
+                # total time at this moment
+                split_time = int(t[0] * 60) + float(t[1])
+                # lap time = total time - last lap total time
+                lap_time = split_time - lap_time
+                lap_min, lap_sec = divmod(lap_time, 60)
+                # set lap minutes to signle digit, without ','
+                lap_min = int(lap_min)
+                # set lap sec to have 2 digits after ','
+                lap_sec = f"{lap_sec:.2f}"
+                print(f"{lap}: {lap_min}:{lap_sec}", file=f)
+                # set lap time to total time for next lap
+                lap_time = split_time
+
+
     # RESET LABELS
     # //////////////////////////////////////////////
 
@@ -636,7 +647,7 @@ class MainWindow(QMainWindow):
                 self.big_window.set_timer_text(self.input_sec.text())
             self.big_window.setWindowTitle("Timer 1")
             self.big_window.set_straight_label("Straight 1")
-            self.big_window.show()
+            self.big_window.showMaximized()
             self.big_window.closed.connect(self.close_window1)
             self.septimewindow = True
 
@@ -646,7 +657,7 @@ class MainWindow(QMainWindow):
                 self.big_window2.set_timer_text(self.input_sec.text())
             self.big_window2.setWindowTitle("Timer 2")
             self.big_window2.set_straight_label("Straight 2")
-            self.big_window2.show()
+            self.big_window2.showMaximized()
             self.big_window2.closed.connect(self.close_window2)
             self.septimewindow2 = True
 
@@ -657,7 +668,7 @@ class MainWindow(QMainWindow):
                 self.big_window.set_timer_text(self.input_sec.text())
             self.big_window.setWindowTitle("Timer 1")
             self.big_window.set_straight_label("Straight 1")
-            self.big_window.show()
+            self.big_window.showMaximized()
             self.big_window.closed.connect(self.close_window1)
             self.septimewindow = True
 
@@ -668,7 +679,7 @@ class MainWindow(QMainWindow):
                 self.big_window2.set_timer_text(self.input_sec.text())
             self.big_window2.setWindowTitle("Timer 2")
             self.big_window2.set_straight_label("Straight 2")
-            self.big_window2.show()
+            self.big_window2.showMaximized()
             self.big_window2.closed.connect(self.close_window2)
             self.septimewindow2 = True
 
@@ -900,12 +911,10 @@ class MainWindow(QMainWindow):
                     if self.public_window_flag:
                         self.public_window.set_split_two_time_public(
                             str(f"{split_min:02d}:{split_sec}"))
-                        self.split_time_array_two.append(
-                            f"{split_min:02d}:{split_sec}")
+                    self.split_time_array_two.append((split_min, split_sec))
                     self.label_lap_time2.setText(f"{split_min}:{split_sec}")
 
     def stop_stopwatch(self):
-
         finish_min, finish_sec = divmod((time.time() - self.start_time), 60)
         if not self.laps.text():
             self.stopwatch_flag = False
@@ -941,8 +950,7 @@ class MainWindow(QMainWindow):
                     str(f"{finish_min:02d}:{finish_sec:>5}"))
                 self.big_window_stopwatch_flag2 = False
                 self.big_window2.set_laps("FINISH")
-                self.split_time_array_two.append(
-                    f"{finish_min:02d}:{finish_sec}")
+                self.split_time_array_two.append((finish_min, finish_sec))
                 self.write_split_times_to_file(2)
         else:
             if self.septimewindow:
@@ -970,9 +978,10 @@ class LapsSeperateTimerWindow(QWidget):
         self.setWindowTitle("Timer")
         self.setWindowIcon(QIcon('icon/t.png'))
         self.resize(self.width, self.height)
-        self.x = self.geometry().height()
+        self.x = self.geometry().height() - 100
         self.y = self.geometry().width()
         print(self.geometry())
+        print(self.x)
 
         self.straight_label = QLabel()
         font = QFont()
