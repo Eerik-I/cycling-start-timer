@@ -238,13 +238,13 @@ class MainWindow(QMainWindow):
 
         # SPLIT TIME LABELS
         self.label_lap_time1 = QLabel()
-        self.label_lap_time1.setText("Split time")
+        self.label_lap_time1.setText("Split Time")
         font = QFont()
         font.setPointSize(10)
         self.label_lap_time1.setFont(font)
         self.label_lap_time1.setFixedHeight(23)
         self.label_lap_time2 = QLabel()
-        self.label_lap_time2.setText("Split time")
+        self.label_lap_time2.setText("Split Time")
         self.label_lap_time2.setFont(font)
         self.label_lap_time2.setFixedHeight(23)
 
@@ -380,9 +380,10 @@ class MainWindow(QMainWindow):
         self.arduino_read2 = True
         self.split_time1 = False
         self.split_time2 = False
+        self.straight_one_lap_time = 0
+        self.straight_two_lap_time = 0
         self.split_time_array_one = []
         self.split_time_array_two = []
-        # Ui_MainWindow.number1Value = self.number1.text()
 
     # FUNCTIONS
     # //////////////////////////////////////////////
@@ -463,7 +464,7 @@ class MainWindow(QMainWindow):
 
     # WRITE SPLIT TIMES TO FILES
     # //////////////////////////////////////////////
-    def write_split_times_to_file(self, straight_number):
+    def write_split_times_to_file(self, straight_number: int):
         current_time = time.localtime()
         if straight_number == 1:
             rider = self.rider_one_number.text()
@@ -497,7 +498,7 @@ class MainWindow(QMainWindow):
                 # lap time = total time - last lap total time
                 lap_time = split_time - lap_time
                 lap_min, lap_sec = divmod(lap_time, 60)
-                # set lap minutes to signle digit, without ','
+                # set lap minutes to single digit, without ','
                 lap_min = int(lap_min)
                 # set lap sec to have 2 digits after ','
                 lap_sec = f"{lap_sec:.2f}"
@@ -512,24 +513,26 @@ class MainWindow(QMainWindow):
     def reset_labels_to_sec_input(self):
         self.big_timer.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.big_timer.setText("<h1>" + self.input_sec.text() + "</h1>")
-        self.label_lap_time1.setText("Split time")
-        self.label_lap_time2.setText("Split time")
+        self.label_lap_time1.setText("Split Time")
+        self.label_lap_time2.setText("Split Time")
+        self.straight_one_lap_time = 0
+        self.straight_two_lap_time = 0
 
         if self.septimewindow:
-            if self.laps.text():
+            if self.laps.text() or self.checkbox_laps.isChecked():
                 self.big_window.set_laps(self.laps.text())
+                self.big_window.set_font_size_to_stopwatch(5)
+                self.big_window.set_split_time("")
             else:
                 self.big_window.set_font_size_to_stopwatch(3)
-            if self.big_window.split_time:
-                self.big_window.split_time.setParent(None)
             self.big_window.set_timer_text(self.input_sec.text())
         if self.septimewindow2:
-            if self.laps.text():
+            if self.laps.text() or self.checkbox_laps.isChecked():
                 self.big_window2.set_laps(self.laps.text())
+                self.big_window2.set_font_size_to_stopwatch(5)
+                self.big_window2.set_split_time("")
             else:
                 self.big_window2.set_font_size_to_stopwatch(3)
-            if self.big_window2.split_time:
-                self.big_window2.split_time.setParent(None)
             self.big_window2.set_timer_text(self.input_sec.text())
 
         if self.public_window_flag:
@@ -640,6 +643,7 @@ class MainWindow(QMainWindow):
             self.cancel_button.setText("Cancel")
             self.cancel_button.setStyleSheet("")
             self.split_time_array_one = []
+            self.split_time_array_two = []
 
         if sender == "Fullscreen Timer":
             self.big_window = SeperateTimerWindow()
@@ -787,7 +791,7 @@ class MainWindow(QMainWindow):
             self.laps_for_split_times = int(self.laps.text())
 
         if self.septimewindow:
-            self.big_window.set_font_size_to_stopwatch()
+            self.big_window.set_font_size_to_stopwatch(5)
             self.big_window_stopwatch_flag1 = True
             if self.checkbox_laps.isChecked():
                 self.laps_amount = int(self.laps.text())
@@ -795,14 +799,12 @@ class MainWindow(QMainWindow):
                 self.laps_amount = 0
 
         if self.septimewindow2:
-            self.big_window2.set_font_size_to_stopwatch()
+            self.big_window2.set_font_size_to_stopwatch(5)
             self.big_window_stopwatch_flag2 = True
             if self.checkbox_laps.isChecked():
                 self.laps_amount2 = int(self.laps.text())
-                print(self.laps_amount2)
             else:
                 self.laps_amount2 = 0
-                print(self.laps_amount2)
 
         while self.stopwatch_flag:
             self.elapsed_time = round((time.time() - self.start_time), 2)
@@ -812,9 +814,9 @@ class MainWindow(QMainWindow):
             self.big_timer.setText(
                 str(f"{self.min:02d}:{self.sec:>5}"))
             if self.septimewindow and self.big_window_stopwatch_flag1:
-                self.big_window.set_timer_text(self.big_timer.text())
+                self.big_window.set_stopwatch_text(self.big_timer.text())
             if self.septimewindow2 and self.big_window_stopwatch_flag2:
-                self.big_window2.set_timer_text(self.big_timer.text())
+                self.big_window2.set_stopwatch_text(self.big_timer.text())
             if (self.septimewindow or self.septimewindow2) and self.public_window_flag:
                 self.public_window.set_timer_text(self.big_timer.text())
 
@@ -859,10 +861,13 @@ class MainWindow(QMainWindow):
             self.loop(100)
 
     def stopwatch_split_time(self):
-        split_min, split_sec = divmod((time.time() - self.start_time), 60)
+        current_time = time.time() - self.start_time
+        split_min, split_sec = divmod((current_time), 60)
         split_min = int(split_min)
         split_sec = f"{split_sec:.2f}"
         if self.big_window_stopwatch_flag1:
+            self.straight_one_lap_time = current_time - self.straight_one_lap_time
+            self.straight_one_lap_time = f"{self.straight_one_lap_time:.2f}"
             if self.laps_amount <= 1:
                 self.laps_amount -= 1
                 self.stop_stopwatch()
@@ -877,20 +882,22 @@ class MainWindow(QMainWindow):
                 if self.septimewindow:
                     self.big_window.set_laps(str(self.laps_amount))
                     self.big_window.set_split_time(
-                        str(f"{split_min:02d}:{split_sec}"))
-                    self.big_window.laps_layout.addWidget(
-                        self.big_window.split_time)
+                        str(f"{split_min:02d}:{split_sec} // Lap Time {self.straight_one_lap_time}"))
                     if self.public_window_flag:
                         self.public_window.set_split_one_time_public(
                             str(f"{split_min:02d}:{split_sec}"))
                     self.split_time_array_one.append((split_min, split_sec))
                     self.label_lap_time1.setText(f"{split_min}:{split_sec}")
+                self.straight_one_lap_time = current_time
 
     def stopwatch_split_time2(self):
-        split_min, split_sec = divmod((time.time() - self.start_time), 60)
+        current_time = time.time() - self.start_time
+        split_min, split_sec = divmod((current_time), 60)
         split_min = int(split_min)
         split_sec = f"{split_sec:.2f}"
         if self.big_window_stopwatch_flag2:
+            self.straight_two_lap_time = current_time - self.straight_two_lap_time
+            self.straight_two_lap_time = f"{self.straight_two_lap_time:.2f}"
             if self.laps_amount2 <= 1:
                 self.laps_amount2 -= 1
                 self.stop_stopwatch()
@@ -905,14 +912,13 @@ class MainWindow(QMainWindow):
                 if self.septimewindow2:
                     self.big_window2.set_laps(str(self.laps_amount2))
                     self.big_window2.set_split_time(
-                        str(f"{split_min:02d}:{split_sec}"))
-                    self.big_window2.laps_layout.addWidget(
-                        self.big_window2.split_time)
+                        str(f"{split_min:02d}:{split_sec} // Lap Time {self.straight_two_lap_time}"))
                     if self.public_window_flag:
                         self.public_window.set_split_two_time_public(
                             str(f"{split_min:02d}:{split_sec}"))
                     self.split_time_array_two.append((split_min, split_sec))
                     self.label_lap_time2.setText(f"{split_min}:{split_sec}")
+                self.straight_two_lap_time = current_time
 
     def stop_stopwatch(self):
         finish_min, finish_sec = divmod((time.time() - self.start_time), 60)
@@ -933,11 +939,12 @@ class MainWindow(QMainWindow):
                 and self.big_window_stopwatch_flag1
                 and self.laps_amount < 1
             ):
-                self.big_window.split_time.setParent(None)
-                self.big_window.set_timer_text(
+                # self.big_window.split_time.setParent(None)
+                self.big_window.set_stopwatch_text(
                     str(f"{finish_min:02d}:{finish_sec:>5}"))
                 self.big_window_stopwatch_flag1 = False
                 self.big_window.set_laps("FINISH")
+                self.big_window.set_split_time(f"// Lap Time {self.straight_one_lap_time}")
                 self.split_time_array_one.append((finish_min, finish_sec))
                 self.write_split_times_to_file(1)
             if (
@@ -945,19 +952,20 @@ class MainWindow(QMainWindow):
                 and self.big_window_stopwatch_flag2
                 and self.laps_amount2 < 1
             ):
-                self.big_window2.split_time.setParent(None)
-                self.big_window2.set_timer_text(
+                # self.big_window2.split_time.setParent(None)
+                self.big_window2.set_stopwatch_text(
                     str(f"{finish_min:02d}:{finish_sec:>5}"))
                 self.big_window_stopwatch_flag2 = False
                 self.big_window2.set_laps("FINISH")
+                self.big_window2.set_split_time(f"// Lap Time {self.straight_two_lap_time}")
                 self.split_time_array_two.append((finish_min, finish_sec))
                 self.write_split_times_to_file(2)
         else:
             if self.septimewindow:
-                self.big_window.set_timer_text(
+                self.big_window.set_stopwatch_text(
                     str(f"{finish_min:02d}:{finish_sec:>5}"))
             if self.septimewindow2:
-                self.big_window2.set_timer_text(
+                self.big_window2.set_stopwatch_text(
                     str(f"{finish_min:02d}:{finish_sec:>5}"))
 
         self.set_cancel_button_text()
@@ -978,10 +986,8 @@ class LapsSeperateTimerWindow(QWidget):
         self.setWindowTitle("Timer")
         self.setWindowIcon(QIcon('icon/t.png'))
         self.resize(self.width, self.height)
-        self.x = self.geometry().height() - 100
+        self.x = self.geometry().height() - 120
         self.y = self.geometry().width()
-        print(self.geometry())
-        print(self.x)
 
         self.straight_label = QLabel()
         font = QFont()
@@ -1003,6 +1009,7 @@ class LapsSeperateTimerWindow(QWidget):
         font.setPixelSize(self.x / 20 / self.pixel_ratio)
         self.split_time.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.split_time.setFont(font)
+        self.split_time.setText("Split Time")
 
         self.laps_layout = QVBoxLayout()
         self.laps_layout.addWidget(self.laps_remaining, 1)
@@ -1011,12 +1018,13 @@ class LapsSeperateTimerWindow(QWidget):
         self.timer.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.timer.setObjectName("timer")
         font = QFont()
-        font.setPixelSize(self.x / 6 / self.pixel_ratio)
+        font.setPixelSize(self.x / 5 / self.pixel_ratio)
         self.timer.setFont(font)
 
         self.main_layout = QVBoxLayout()
         self.main_layout.addWidget(self.straight_label)
         self.main_layout.addLayout(self.laps_layout, 1)
+        self.main_layout.addWidget(self.split_time)
         self.main_layout.addWidget(self.timer, 4)
         self.setLayout(self.main_layout)
 
@@ -1040,6 +1048,10 @@ class LapsSeperateTimerWindow(QWidget):
 
     def set_timer_text(self, str):
         self.timer.setText("<h1>" + str + "</h1>")
+        
+    def set_stopwatch_text(self, str):
+        self.timer.setText("<h5>" + str + "</h5>")
+        self.set_font_size_to_stopwatch(2)
 
     def set_font_size_to_stopwatch(self, multiplier=6):
         font = QFont()
@@ -1058,6 +1070,7 @@ class SeperateTimerWindow(LapsSeperateTimerWindow):
 
         self.laps_remaining.setParent(None)
         self.laps_layout.setParent(None)
+        self.split_time.setParent(None)
 
         self.set_font_size_to_stopwatch(multiplier=3)
 
