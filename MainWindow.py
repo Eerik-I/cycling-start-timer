@@ -472,7 +472,7 @@ class MainWindow(QMainWindow):
         if straight_number == 2:
             rider = self.rider_two_number.text()
             times = self.split_time_array_two
-            
+
         with open(
                 f"results/{straight_number}st-({current_time.tm_year}-{current_time.tm_mon}-{current_time.tm_mday})"
                 f"({current_time.tm_hour}-{current_time.tm_min}-{current_time.tm_sec})-"
@@ -481,13 +481,13 @@ class MainWindow(QMainWindow):
             print(f"ATHLETE: {rider}", file=f)
             print(file=f)
             print("SPLIT TIMES", file=f)
-            print("*" * 13,file=f)
+            print("*" * 13, file=f)
             for index, t in enumerate(times):
                 print(f"{index + 1}: {t[0]}:{t[1]}", file=f)
 
             print(file=f)
             print("LAP TIMES", file=f)
-            print("*" * 13,file=f)
+            print("*" * 13, file=f)
 
             split_time = 0
             lap_time = 0
@@ -505,7 +505,6 @@ class MainWindow(QMainWindow):
                 print(f"{lap}: {lap_min}:{lap_sec}", file=f)
                 # set lap time to total time for next lap
                 lap_time = split_time
-
 
     # RESET LABELS
     # //////////////////////////////////////////////
@@ -536,8 +535,8 @@ class MainWindow(QMainWindow):
             self.big_window2.set_timer_text(self.input_sec.text())
 
         if self.public_window_flag:
-            self.public_window.set_split_one_time_public(" - ")
-            self.public_window.set_split_two_time_public(" - ")
+            self.public_window.straight_one_split.setText(" - ")
+            self.public_window.straight_two_split.setText(" - ")
             self.public_window.set_timer_text("00: 0.00")
 
     # SET ARDUINO COM PORT
@@ -718,7 +717,7 @@ class MainWindow(QMainWindow):
         i = t - int(time.time())
 
         # Display mm:ss timeformat
-        while i >= 60:
+        while i >= 61:
             i = t - int(time.time())
             min, sec = divmod(i, 60)
             output = f"{min:02d}:{sec:>2}"
@@ -729,7 +728,7 @@ class MainWindow(QMainWindow):
                 self.big_window.set_timer_text(str(output))
             if self.septimewindow2:
                 self.big_window2.set_timer_text(str(output))
-            self.loop(500)
+            self.loop(1000)
             i -= 1
 
         # Display ss timeformat
@@ -744,7 +743,7 @@ class MainWindow(QMainWindow):
                 self.big_window2.set_timer_text(str(i))
             if i <= 0:
                 break
-            if 0 < i < 6 or i == 50 or i == 30 or i == 10:
+            if 0 < i < 6 or (i < 61 and i % 10 == 0):
                 self.play_sound("mp3/beep.mp3")
                 self.loop(1000)
             else:
@@ -873,8 +872,7 @@ class MainWindow(QMainWindow):
                 self.stop_stopwatch()
                 self.label_lap_time1.setText(f"FINISH {split_min}:{split_sec}")
                 if self.public_window_flag:
-                    self.public_window.set_split_one_time_public(
-                        f"{split_min:02d}:{split_sec}")
+                    self.public_window.set_split_one_time_public(current_time)
 
             else:
                 self.laps_amount -= 1
@@ -885,7 +883,7 @@ class MainWindow(QMainWindow):
                         str(f"{split_min:02d}:{split_sec} // Lap Time {self.straight_one_lap_time}"))
                     if self.public_window_flag:
                         self.public_window.set_split_one_time_public(
-                            str(f"{split_min:02d}:{split_sec}"))
+                            current_time)
                     self.split_time_array_one.append((split_min, split_sec))
                     self.label_lap_time1.setText(f"{split_min}:{split_sec}")
                 self.straight_one_lap_time = current_time
@@ -903,8 +901,7 @@ class MainWindow(QMainWindow):
                 self.stop_stopwatch()
                 self.label_lap_time2.setText(f"FINISH {split_min}:{split_sec}")
                 if self.public_window_flag:
-                    self.public_window.set_split_two_time_public(
-                        f"{split_min:02d}:{split_sec}")
+                    self.public_window.set_split_two_time_public(current_time)
 
             else:
                 self.laps_amount2 -= 1
@@ -915,7 +912,7 @@ class MainWindow(QMainWindow):
                         str(f"{split_min:02d}:{split_sec} // Lap Time {self.straight_two_lap_time}"))
                     if self.public_window_flag:
                         self.public_window.set_split_two_time_public(
-                            str(f"{split_min:02d}:{split_sec}"))
+                            current_time)
                     self.split_time_array_two.append((split_min, split_sec))
                     self.label_lap_time2.setText(f"{split_min}:{split_sec}")
                 self.straight_two_lap_time = current_time
@@ -944,7 +941,8 @@ class MainWindow(QMainWindow):
                     str(f"{finish_min:02d}:{finish_sec:>5}"))
                 self.big_window_stopwatch_flag1 = False
                 self.big_window.set_laps("FINISH")
-                self.big_window.set_split_time(f"// Lap Time {self.straight_one_lap_time}")
+                self.big_window.set_split_time(
+                    f"// Lap Time {self.straight_one_lap_time}")
                 self.split_time_array_one.append((finish_min, finish_sec))
                 self.write_split_times_to_file(1)
             if (
@@ -957,7 +955,8 @@ class MainWindow(QMainWindow):
                     str(f"{finish_min:02d}:{finish_sec:>5}"))
                 self.big_window_stopwatch_flag2 = False
                 self.big_window2.set_laps("FINISH")
-                self.big_window2.set_split_time(f"// Lap Time {self.straight_two_lap_time}")
+                self.big_window2.set_split_time(
+                    f"// Lap Time {self.straight_two_lap_time}")
                 self.split_time_array_two.append((finish_min, finish_sec))
                 self.write_split_times_to_file(2)
         else:
@@ -1048,7 +1047,7 @@ class LapsSeperateTimerWindow(QWidget):
 
     def set_timer_text(self, str):
         self.timer.setText("<h1>" + str + "</h1>")
-        
+
     def set_stopwatch_text(self, str):
         self.timer.setText("<h5>" + str + "</h5>")
         self.set_font_size_to_stopwatch(2)
@@ -1116,14 +1115,49 @@ class PublicTimerWindow(SeperateTimerWindow):
 
         self.main_layout.addLayout(layout)
 
+        self.split_one_time = 0
+        self.split_two_time = 0
+        self.lap_count1 = 0
+        self.lap_count2 = 0
+
     def set_timer_text(self, str):
         self.timer.setText("<h2>" + str + "</h2>")
 
-    def set_split_one_time_public(self, str):
-        self.straight_one_split.setText(f"<h4>{str}</h4>")
+    def set_split_one_time_public(self, split_time):
+        self.split_one_time = split_time
+        split_min, split_sec = divmod(split_time, 60)
+        split_min = int(split_min)
+        split_time = f"{split_min}:{split_sec:.2f}"
 
-    def set_split_two_time_public(self, str):
-        self.straight_two_split.setText(f"<h4>{str}</h4>")
+        if self.split_two_time == 0:
+            self.straight_one_split.setText(f"<h4>{split_time} -0.00</h4>")
+            self.lap_count1 += 1
+        elif self.lap_count1 >= self.lap_count2:
+            self.straight_one_split.setText(f"<h4>{split_time} -0.00</h4>")
+            self.lap_count1 += 1
+        else:
+            split_time_difference = self.split_one_time - self.split_two_time
+            self.straight_one_split.setText(
+                f"<h4>{split_time} +{split_time_difference:.2f}</h4>")
+            self.lap_count1 += 1
+
+    def set_split_two_time_public(self, split_time):
+        self.split_two_time = split_time
+        split_min, split_sec = divmod(split_time, 60)
+        split_min = int(split_min)
+        split_time = f"{split_min}:{split_sec:.2f}"
+
+        if self.split_one_time == 0:
+            self.straight_two_split.setText(f"<h4>{split_time} -0.00</h4>")
+            self.lap_count2 += 1
+        elif self.lap_count1 <= self.lap_count2:
+            self.straight_two_split.setText(f"<h4>{split_time} -0.00</h4>")
+            self.lap_count2 += 1
+        else:
+            split_time_difference = self.split_two_time - self.split_one_time
+            self.straight_two_split.setText(
+                f"<h4>{split_time} +{split_time_difference:.2f}</h4>")
+            self.lap_count2 += 1
 
 
 class ConfigureUSBWindow(QDialog):
